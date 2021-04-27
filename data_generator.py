@@ -36,10 +36,17 @@ def generate_data(schema, out_file, nrecords):
         str_res = ''.join(random.choice(letters) for k in range(l)) 
         f.write(str_res)
       else:
-        mn = field["distribution"]["min"]
-        mx = field["distribution"]["max"]
-        value = random.randint(mn, mx)
-        f.write(str(value))
+        if field["distribution"]["name"] == "uniform":
+          mn = field["distribution"]["min"]
+          mx = field["distribution"]["max"]
+          value = random.randint(mn, mx)
+          f.write(str(value))
+        else:
+          mu = field["distribution"]["mu"]
+          sigma = field["distribution"]["sigma"]
+          value = random.gauss(mu, sigma)
+          f.write(format(value, ".2f"))
+       
       
       f.write(",")
     f.write("\n")
