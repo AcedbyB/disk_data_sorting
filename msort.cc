@@ -37,10 +37,25 @@ int main(int argc, const char* argv[]) {
     cout << "{name : " << attr_name << ", length : " << attr_len << "}" << endl;
   }
 
-  // Determining the sorting attributes
+  // Initiating the Schema object
   Schema *cur_schema =  new Schema();
   cur_schema -> n_sort_attrs = argc - 6;
-  cout<<cur_schema -> n_sort_attrs <<endl;
+  cur_schema -> nattrs = schema.size();
+  for (int i = 0; i < schema.size(); i++) {
+    cur_schema -> attrs[i] = new Attribute();
+    strcpy(cur_schema -> attrs[i] -> name, schema[i].get("name", "UTF-8" ).asString().c_str());
+    cur_schema -> attrs[i] -> length = schema[i].get("length", "UTF-8").asInt();
+    strcpy(cur_schema -> attrs[i] -> type, schema[i].get("type", "UTF-8" ).asString().c_str());
+    //cout<<i<<' '<<cur_schema -> attrs[i] -> name<<endl;
+    // string attr_type = schema[i].get("type", "UTF-8").asString();
+    // if(attr_type == "string") {
+    //   attrs[i] -> name  
+    // }
+    // else {
+
+    // }
+  }
+  
   for(int i = 0; i < cur_schema -> n_sort_attrs; i++) {
     string cur_att(argv[i + 6]);
     if(cur_att == "student_number") cur_schema -> sort_attrs[i] = 1;

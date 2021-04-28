@@ -13,9 +13,9 @@ typedef struct {
  * this to add your own fields.
  */
 typedef struct {
-  char *name;
+  char name[20];
   int length;
-  char *type;
+  char type[20];
   Distribution *dis;
 } Attribute;
 
@@ -26,7 +26,7 @@ typedef struct {
  * `attrs` array).
  */
 typedef struct {
-  Attribute **attrs;
+  Attribute * attrs[5];
   int nattrs;
   int sort_attrs[5];
   int n_sort_attrs;
