@@ -37,8 +37,20 @@ int main(int argc, const char* argv[]) {
     cout << "{name : " << attr_name << ", length : " << attr_len << "}" << endl;
   }
 
+  // Determining the sorting attributes
+  Schema *cur_schema =  new Schema();
+  cur_schema -> n_sort_attrs = argc - 6;
+  cout<<cur_schema -> n_sort_attrs <<endl;
+  for(int i = 0; i < cur_schema -> n_sort_attrs; i++) {
+    string cur_att(argv[i + 6]);
+    if(cur_att == "student_number") cur_schema -> sort_attrs[i] = 1;
+    else if(cur_att == "account_name") cur_schema -> sort_attrs[i] = 2;
+    else if(cur_att == "start_year") cur_schema -> sort_attrs[i] = 3;
+    else cur_schema -> sort_attrs[i] = 4;
+  }
+
   // Do the sort
-  // Your implementation
+
   
   return 0;
 }
