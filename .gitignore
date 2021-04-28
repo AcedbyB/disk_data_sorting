@@ -3,3 +3,6 @@ library.output
 msort
 library.o
 *.o
+bsort.dSYM
+msort.dSYM
+bsort
