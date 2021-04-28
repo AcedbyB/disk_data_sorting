@@ -3,3 +3,7 @@ library.output
 msort
 library.o
 *vscode*
+*.o
+bsort.dSYM
+msort.dSYM
+bsort
