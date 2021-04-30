@@ -1,13 +1,5 @@
 #include <cstdio>
 
-typedef struct {
-  char *name;
-  int min;
-  int max;
-  double mu;
-  double sigma;
-} Distribution;
-
 /**
  * An attribute schema. You should probably modify
  * this to add your own fields.
@@ -16,7 +8,7 @@ typedef struct {
   char name[20];
   int length;
   char type[20];
-  Distribution *dis;
+  char distribution[20];
 } Attribute;
 
 /**
@@ -38,7 +30,7 @@ typedef struct {
  */
 typedef struct {
   Schema* schema;
-  char* data;
+  char data[50];
 } Record;
 
 /**

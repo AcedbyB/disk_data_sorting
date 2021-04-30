@@ -42,18 +42,17 @@ int main(int argc, const char* argv[]) {
   cur_schema -> n_sort_attrs = argc - 6;
   cur_schema -> nattrs = schema.size();
   for (int i = 0; i < schema.size(); i++) {
+
     cur_schema -> attrs[i] = new Attribute();
     strcpy(cur_schema -> attrs[i] -> name, schema[i].get("name", "UTF-8" ).asString().c_str());
     cur_schema -> attrs[i] -> length = schema[i].get("length", "UTF-8").asInt();
     strcpy(cur_schema -> attrs[i] -> type, schema[i].get("type", "UTF-8" ).asString().c_str());
-    //cout<<i<<' '<<cur_schema -> attrs[i] -> name<<endl;
-    // string attr_type = schema[i].get("type", "UTF-8").asString();
-    // if(attr_type == "string") {
-    //   attrs[i] -> name  
-    // }
-    // else {
-
-    // }
+    
+    string attr_type = schema[i].get("type", "UTF-8").asString();
+    if(attr_type != "string") {
+      strcpy(cur_schema -> attrs[i] -> distribution, schema[i].get("distribution", "UTF-8" ).get("name", "UTF-8").asString().c_str());
+    }
+    
   }
   
   for(int i = 0; i < cur_schema -> n_sort_attrs; i++) {
@@ -65,7 +64,17 @@ int main(int argc, const char* argv[]) {
   }
 
   // Do the sort
+  FILE* in_fp = fopen (argv[2] , "r");;
+  FILE* out_fp = fopen(argv[3], "w");
+  mk_runs(in_fp, out_fp, 10, cur_schema);
 
+  // in_fp = fopen (argv[2] , "r");
+  // while ( ! feof (in_fp) )
+  //    {
+  //      if ( fgets (buffer , 100 , in_fp) == NULL ) break;
+  //      fputs (buffer , stdout);
+  //    }
+  //    fclose (in_fp);
   
-  return 0;
+  // return 0;
 }
