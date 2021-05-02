@@ -22,6 +22,7 @@ typedef struct {
   int nattrs;
   int sort_attrs[5];
   int n_sort_attrs;
+  int offset[5];
 } Schema;
 
 /**

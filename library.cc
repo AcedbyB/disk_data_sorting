@@ -8,18 +8,23 @@ int compare (const void * a, const void * b)
 {
   Record *rA = *(Record **)a;
   Record *rB = *(Record **)b;
-  char str_yearA[5];
-  char str_yearB[5];
-  memcpy(str_yearA, rA -> data + 19, 4 );
-  memcpy(str_yearB, rB -> data + 19, 4 );
-  str_yearA[4] = '\0';
-  str_yearB[4] = '\0';
-  int nA = atoi(str_yearA);
-  int nB = atoi(str_yearB);
 
-  if ( nA < nB ) return -1;
-  if ( nA == nB ) return 0;
-  if ( nA > nB ) return 1;
+  for(int j = 0; j < rA -> schema -> n_sort_attrs; j++) {
+    int i = rA -> schema -> sort_attrs[j];
+    int length = rA -> schema -> attrs[i] -> length;
+    int offset = rA -> schema -> offset[i];
+    char str_A[length + 1];
+    char str_B[length + 1];
+    memcpy(str_A, rA -> data + offset, length);
+    memcpy(str_B, rB -> data + offset, length);
+    str_A[length] = '\0';
+    str_B[length] = '\0';
+
+    int cmp = strcmp(str_A, str_B);
+    if(cmp!=0) return cmp;
+  }
+
+  return 0;
 }
 
 void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
@@ -35,7 +40,7 @@ void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
   int bytes_per_record = schema -> nattrs;
   for(int i = 0; i < schema -> nattrs; i++) bytes_per_record += schema -> attrs[i] -> length;
   while ( !feof (in_fp) ) {
-    fgets (buffer, 1 , in_fp); //skips beginning of file character
+    fgets (buffer, 1 , in_fp);
     if ( fgets (records[cur] -> data , bytes_per_record + 1, in_fp) == NULL ) break;
     fgets (buffer, 2 , in_fp); //skips end of line character
     cur++;
@@ -43,10 +48,10 @@ void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
     if(cur == run_length) {
       qsort (records, run_length, sizeof(Record*), compare);
       for(int i = 0; i < run_length; i++) {
-        cout<<records[i] -> data<<endl;
+        fprintf(out_fp, records[i] -> data);
+        fprintf(out_fp, "\n");
       }
       cur = 0;
-      cout<<endl;
     }
   }
   fclose (in_fp);

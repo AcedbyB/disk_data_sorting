@@ -41,11 +41,14 @@ int main(int argc, const char* argv[]) {
   Schema *cur_schema =  new Schema();
   cur_schema -> n_sort_attrs = argc - 6;
   cur_schema -> nattrs = schema.size();
+  int cur_offset = 0;
   for (int i = 0; i < schema.size(); i++) {
 
     cur_schema -> attrs[i] = new Attribute();
     strcpy(cur_schema -> attrs[i] -> name, schema[i].get("name", "UTF-8" ).asString().c_str());
     cur_schema -> attrs[i] -> length = schema[i].get("length", "UTF-8").asInt();
+    cur_schema -> offset[i] = cur_offset;
+    cur_offset = cur_offset + cur_schema -> attrs[i] -> length + 1;
     strcpy(cur_schema -> attrs[i] -> type, schema[i].get("type", "UTF-8" ).asString().c_str());
     
     string attr_type = schema[i].get("type", "UTF-8").asString();
@@ -57,10 +60,10 @@ int main(int argc, const char* argv[]) {
   
   for(int i = 0; i < cur_schema -> n_sort_attrs; i++) {
     string cur_att(argv[i + 6]);
-    if(cur_att == "student_number") cur_schema -> sort_attrs[i] = 1;
-    else if(cur_att == "account_name") cur_schema -> sort_attrs[i] = 2;
-    else if(cur_att == "start_year") cur_schema -> sort_attrs[i] = 3;
-    else cur_schema -> sort_attrs[i] = 4;
+    if(cur_att == "student_number") cur_schema -> sort_attrs[i] = 0;
+    else if(cur_att == "account_name") cur_schema -> sort_attrs[i] = 1;
+    else if(cur_att == "start_year") cur_schema -> sort_attrs[i] = 2;
+    else cur_schema -> sort_attrs[i] = 3;
   }
 
   // Do the sort
