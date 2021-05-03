@@ -50,6 +50,15 @@ class RunIterator {
    * scan through a run that starts at `start_pos`
    * with length `run_length`.
    */
+
+  public:
+  
+  long start_pos, run_length, buf_size;
+  Schema *schema;
+  FILE *fp;
+  int cur_index = 0;
+  Record *cur_record;
+
   RunIterator(FILE *fp, long start_pos, long run_length, long buf_size,
               Schema *schema);
 

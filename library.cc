@@ -30,7 +30,7 @@ int compare (const void * a, const void * b)
 void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
 {
   int cur = 0;
-  char buffer[50];
+  char buffer[5];
   Record* records[run_length];
   for(int i = 0; i < run_length; i++) {
     records[i] = new Record();
@@ -41,6 +41,7 @@ void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
   for(int i = 0; i < schema -> nattrs; i++) bytes_per_record += schema -> attrs[i] -> length;
   while ( !feof (in_fp) ) {
     fgets (buffer, 1 , in_fp);
+
     if ( fgets (records[cur] -> data , bytes_per_record + 1, in_fp) == NULL ) break;
     fgets (buffer, 2 , in_fp); //skips end of line character
     cur++;
@@ -56,6 +57,42 @@ void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
   }
   fclose (in_fp);
   return;
+}
+
+/**
+ * The iterator helps you scan through a run.
+ * you can add additional members as your wish
+ */
+RunIterator::RunIterator(FILE *Fp, long Start_pos, long Run_length, long Buf_size, Schema *sChema) {
+      start_pos = Start_pos;
+      run_length = Run_length;
+      buf_size = Buf_size;
+      schema = sChema;
+      fp = Fp;
+      cur_record = new Record();
+      cur_record -> schema =  schema;
+}
+ 
+/**
+ * reads the next record
+ */
+Record*  RunIterator::next() {
+  int bytes_per_record = schema -> nattrs;
+  for(int i = 0; i < schema -> nattrs; i++) bytes_per_record += schema -> attrs[i] -> length;
+  fgets (cur_record -> data , bytes_per_record + 1, fp);
+  char buffer[5];
+  fgets (buffer, 2 , fp);
+  cur_index++;
+  return cur_record;
+}
+ 
+/**
+ * return false if iterator reaches the end
+ * of the run
+ */
+bool RunIterator::has_next() {
+  if(cur_index < run_length) return 1;
+  else return 0;
 }
 
 void merge_runs(RunIterator* iterators[], int num_runs, FILE *out_fp,

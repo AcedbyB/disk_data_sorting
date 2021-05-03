@@ -67,17 +67,17 @@ int main(int argc, const char* argv[]) {
   }
 
   // Do the sort
-  FILE* in_fp = fopen (argv[2] , "r");;
-  FILE* out_fp = fopen(argv[3], "w");
+  FILE* in_fp = fopen (argv[2] , "r");
+  FILE* out_fp = fopen(argv[3], "r+");
   mk_runs(in_fp, out_fp, 10, cur_schema);
+  long start_pos = 0;
+  long run_length = 10;
+  long buf_size = 1000;
 
-  // in_fp = fopen (argv[2] , "r");
-  // while ( ! feof (in_fp) )
-  //    {
-  //      if ( fgets (buffer , 100 , in_fp) == NULL ) break;
-  //      fputs (buffer , stdout);
-  //    }
-  //    fclose (in_fp);
-  
-  // return 0;
+  fseek (out_fp , start_pos, SEEK_SET );
+  RunIterator *it = new RunIterator(out_fp, start_pos, run_length, buf_size, cur_schema);
+  while(it -> has_next()) {
+    cout<<it -> next() -> data<<endl;
+  }
+
 }
