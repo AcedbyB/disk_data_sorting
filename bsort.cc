@@ -16,6 +16,11 @@ int main(int argc, const char* argv[]) {
 	}
 
 	// Do work here
+	leveldb::DB *db;
+	leveldb::Options options;
+	options.create_if_missing = true;
+	leveldb::Status status = leveldb::DB::Open(options, "./leveldb_dir", &db);
+	assert(status.ok());
 	
 	return 0;
 }

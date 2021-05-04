@@ -2,9 +2,10 @@ output*
 input*
 library.output
 msort
+bsort
 library.o
 *vscode*
 *.o
 bsort.dSYM
 msort.dSYM
-bsort
+

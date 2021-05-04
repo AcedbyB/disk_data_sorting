@@ -1,7 +1,7 @@
 CC = g++
 CCFLAGS = -O3 -Wall -g -std=c++11
 LEVELDB_DIR = ./leveldb/build
-LEVELDB_OPTS = -I $(LEVELDB_DIR)/include -pthread $(LEVELDB_DIR)/libleveldb.a
+LEVELDB_OPTS = -I $(LEVELDB_DIR)/include -pthread $(LEVELDB_DIR)/libleveldb.a -lsnappy
 JSONCPP_OPTS = -I .
 
 all: library.o jsoncpp.o msort bsort
