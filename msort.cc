@@ -73,14 +73,13 @@ int main(int argc, const char* argv[]) {
   // temp file to store mk runs 
   FILE *temp_file = fopen("temp", "w+");
 
-  mk_runs(in_fp, temp_file, 10, cur_schema);
   long start_pos = 0;
-  long run_length = 10;
+  long run_length = 5;
   long buf_size = 1000;
-
+  mk_runs(in_fp, temp_file, run_length, cur_schema);
   fseek (temp_file , start_pos, SEEK_SET );
 
-  int num_runs = 2;
+  int num_runs = 4;
   RunIterator* iterators[num_runs];
 
   int bytes_per_record = cur_schema -> nattrs;
@@ -93,6 +92,6 @@ int main(int argc, const char* argv[]) {
 
 
   char buf [32];
-  merge_runs(iterators, 2, out_fp, 0, buf, 10000);
-  remove("temp");
+  merge_runs(iterators, num_runs, out_fp, 0, buf, 10000);
+  // remove("temp");
 }
