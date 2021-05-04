@@ -69,15 +69,30 @@ int main(int argc, const char* argv[]) {
   // Do the sort
   FILE* in_fp = fopen (argv[2] , "r");
   FILE* out_fp = fopen(argv[3], "r+");
-  mk_runs(in_fp, out_fp, 10, cur_schema);
+
+  // temp file to store mk runs 
+  FILE *temp_file = fopen("temp", "w+");
+
+  mk_runs(in_fp, temp_file, 10, cur_schema);
   long start_pos = 0;
   long run_length = 10;
   long buf_size = 1000;
 
-  fseek (out_fp , start_pos, SEEK_SET );
-  RunIterator *it = new RunIterator(out_fp, start_pos, run_length, buf_size, cur_schema);
-  while(it -> has_next()) {
-    cout<<it -> next() -> data<<endl;
+  fseek (temp_file , start_pos, SEEK_SET );
+
+  int num_runs = 2;
+  RunIterator* iterators[num_runs];
+
+  int bytes_per_record = cur_schema -> nattrs;
+  for(int i = 0; i < cur_schema -> nattrs; i++) bytes_per_record += cur_schema -> attrs[i] -> length;
+
+// One iterator for each sublist
+  for(int i = 0; i < num_runs; i++){
+    iterators[i] = new RunIterator(temp_file, i*run_length*(bytes_per_record+1), run_length, buf_size, cur_schema);
   }
 
+
+  char buf [32];
+  merge_runs(iterators, 2, out_fp, 0, buf, 10000);
+  remove("temp");
 }

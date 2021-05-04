@@ -2,13 +2,16 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>  
+#include<vector> 
+#include<algorithm>
+#include<queue>
+
 using namespace std;
 
 int compare (const void * a, const void * b)
 {
   Record *rA = *(Record **)a;
   Record *rB = *(Record **)b;
-
   for(int j = 0; j < rA -> schema -> n_sort_attrs; j++) {
     int i = rA -> schema -> sort_attrs[j];
     int length = rA -> schema -> attrs[i] -> length;
@@ -26,6 +29,31 @@ int compare (const void * a, const void * b)
 
   return 0;
 }
+
+class Compare
+{
+public:
+    bool operator() (RunIterator* a, RunIterator* b)
+    {
+        Record* rA = a->cur_record;
+        Record* rB = b->cur_record;
+        for(int j = 0; j < rA -> schema -> n_sort_attrs; j++) {
+            int i = rA -> schema -> sort_attrs[j];
+            int length = rA -> schema -> attrs[i] -> length;
+            int offset = rA -> schema -> offset[i];
+            char str_A[length + 1];
+            char str_B[length + 1];
+            memcpy(str_A, rA -> data + offset, length);
+            memcpy(str_B, rB -> data + offset, length);
+            str_A[length] = '\0';
+            str_B[length] = '\0';
+
+            int cmp = strcmp(str_A, str_B);
+            if(cmp>0) return true;
+        }
+        return false;
+    }
+};
 
 void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
 {
@@ -79,6 +107,7 @@ RunIterator::RunIterator(FILE *Fp, long Start_pos, long Run_length, long Buf_siz
 Record*  RunIterator::next() {
   int bytes_per_record = schema -> nattrs;
   for(int i = 0; i < schema -> nattrs; i++) bytes_per_record += schema -> attrs[i] -> length;
+  fseek(fp, start_pos+cur_index*(bytes_per_record+1), SEEK_SET);
   fgets (cur_record -> data , bytes_per_record + 1, fp);
   char buffer[5];
   fgets (buffer, 2 , fp);
@@ -99,5 +128,21 @@ void merge_runs(RunIterator* iterators[], int num_runs, FILE *out_fp,
                 long start_pos, char *buf, long buf_size)
 {
   // Your implementation
+  priority_queue <RunIterator*, vector<RunIterator*>, Compare> heap;
+  
+  for(int i = 0; i < num_runs; i++){
+    iterators[i]->next();
+    heap.push(iterators[i]);
+  }
+  while (!heap.empty()){
+    RunIterator* it = heap.top();
+    heap.pop();
+    fprintf(out_fp, it->cur_record->data);
+    fprintf(out_fp, "\n");
+    if (it->has_next()){
+      it->next();
+      heap.push(it);
+    }
+  }
 }
 
