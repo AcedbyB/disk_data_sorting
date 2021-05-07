@@ -8,4 +8,4 @@ library.o
 *.o
 bsort.dSYM
 msort.dSYM
-
+leveldb_dir

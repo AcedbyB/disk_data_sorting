@@ -65,12 +65,10 @@ void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
     records[i] -> schema = schema;
   }
 
-  int bytes_per_record = schema -> nattrs;
-  for(int i = 0; i < schema -> nattrs; i++) bytes_per_record += schema -> attrs[i] -> length;
   while ( !feof (in_fp) ) {
     fgets (buffer, 1 , in_fp);
 
-    if ( fgets (records[cur] -> data , bytes_per_record + 1, in_fp) == NULL ) break;
+    if ( fgets (records[cur] -> data , schema -> bytes_per_record + 1, in_fp) == NULL ) break;
     fgets (buffer, 2 , in_fp); //skips end of line character
     cur++;
 

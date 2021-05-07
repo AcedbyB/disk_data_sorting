@@ -41,6 +41,7 @@ int main(int argc, const char* argv[]) {
   Schema *cur_schema =  new Schema();
   cur_schema -> n_sort_attrs = argc - 6;
   cur_schema -> nattrs = schema.size();
+
   int cur_offset = 0;
   for (int i = 0; i < schema.size(); i++) {
 
@@ -57,6 +58,9 @@ int main(int argc, const char* argv[]) {
     }
     
   }
+
+  cur_schema -> bytes_per_record = cur_schema -> nattrs;
+  for(int i = 0; i < cur_schema -> nattrs; i++) cur_schema -> bytes_per_record += cur_schema -> attrs[i] -> length;
   
   for(int i = 0; i < cur_schema -> n_sort_attrs; i++) {
     string cur_att(argv[i + 6]);
@@ -82,12 +86,9 @@ int main(int argc, const char* argv[]) {
   int num_runs = 4;
   RunIterator* iterators[num_runs];
 
-  int bytes_per_record = cur_schema -> nattrs;
-  for(int i = 0; i < cur_schema -> nattrs; i++) bytes_per_record += cur_schema -> attrs[i] -> length;
-
 // One iterator for each sublist
   for(int i = 0; i < num_runs; i++){
-    iterators[i] = new RunIterator(temp_file, i*run_length*(bytes_per_record+1), run_length, buf_size, cur_schema);
+    iterators[i] = new RunIterator(temp_file, i*run_length*(cur_schema -> bytes_per_record+1), run_length, buf_size, cur_schema);
   }
 
 
