@@ -82,9 +82,7 @@ int main(int argc, const char* argv[]) {
   int num_runs = 4;
   RunIterator* iterators[num_runs];
 
-  int bytes_per_record = cur_schema -> nattrs;
-  for(int i = 0; i < cur_schema -> nattrs; i++) bytes_per_record += cur_schema -> attrs[i] -> length;
-
+  int bytes_per_record = cur_schema -> bytes_per_record();
 // One iterator for each sublist
   for(int i = 0; i < num_runs; i++){
     iterators[i] = new RunIterator(temp_file, i*run_length*(bytes_per_record+1), run_length, buf_size, cur_schema);
