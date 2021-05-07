@@ -55,6 +55,15 @@ public:
     }
 };
 
+int Schema::bytes_per_record()
+{
+  int n = nattrs;
+  for(int i = 0; i < nattrs; i++){
+    n += attrs[i]->length;
+  }
+  return n;
+}
+
 void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
 {
   int cur = 0;
@@ -65,10 +74,11 @@ void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
     records[i] -> schema = schema;
   }
 
+  int bytes_per_record = schema->bytes_per_record();
   while ( !feof (in_fp) ) {
     fgets (buffer, 1 , in_fp);
 
-    if ( fgets (records[cur] -> data , schema -> bytes_per_record + 1, in_fp) == NULL ) break;
+    if ( fgets (records[cur] -> data , schema -> bytes_per_record() + 1, in_fp) == NULL ) break;
     fgets (buffer, 2 , in_fp); //skips end of line character
     cur++;
 
@@ -103,8 +113,7 @@ RunIterator::RunIterator(FILE *Fp, long Start_pos, long Run_length, long Buf_siz
  * reads the next record
  */
 Record*  RunIterator::next() {
-  int bytes_per_record = schema -> nattrs;
-  for(int i = 0; i < schema -> nattrs; i++) bytes_per_record += schema -> attrs[i] -> length;
+  int bytes_per_record = schema->bytes_per_record() ;
   fseek(fp, start_pos+cur_index*(bytes_per_record+1), SEEK_SET);
   fgets (cur_record -> data , bytes_per_record + 1, fp);
   char buffer[5];

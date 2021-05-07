@@ -9,3 +9,4 @@ library.o
 bsort.dSYM
 msort.dSYM
 leveldb_dir
+temp*

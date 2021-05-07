@@ -23,7 +23,8 @@ typedef struct {
   int sort_attrs[5];
   int n_sort_attrs;
   int offset[5];
-  int bytes_per_record;
+
+  int bytes_per_record();
 } Schema;
 
 /**
