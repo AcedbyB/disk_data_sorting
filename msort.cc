@@ -76,6 +76,8 @@ int main(int argc, const char* argv[]) {
 
   long start_pos = 0;
   long run_length = 5;
+
+  
   long buf_size = 1000;
   mk_runs(in_fp, temp_file, run_length, cur_schema);
   fseek (temp_file , start_pos, SEEK_SET );
@@ -90,7 +92,7 @@ int main(int argc, const char* argv[]) {
   }
 
 
-  char buf [32];
-  merge_runs(iterators, num_runs, out_fp, 0, buf, 10000);
+  char buf [1000];
+  merge_runs(iterators, num_runs, out_fp, 0, buf, 1000);
   // remove("temp");
 }

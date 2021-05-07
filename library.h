@@ -59,7 +59,9 @@ class RunIterator {
   Schema *schema;
   FILE *fp;
   int cur_index = 0;
+  int records_num;
   Record *cur_record;
+  void * record_buf;
 
   RunIterator(FILE *fp, long start_pos, long run_length, long buf_size,
               Schema *schema);

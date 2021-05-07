@@ -105,8 +105,10 @@ RunIterator::RunIterator(FILE *Fp, long Start_pos, long Run_length, long Buf_siz
       buf_size = Buf_size;
       schema = sChema;
       fp = Fp;
+      records_num = buf_size/(schema->bytes_per_record()+1);
       cur_record = new Record();
-      cur_record -> schema =  schema;
+      cur_record -> schema = schema;
+      record_buf = malloc(records_num*(schema->bytes_per_record()+1));
 }
  
 /**
@@ -114,10 +116,14 @@ RunIterator::RunIterator(FILE *Fp, long Start_pos, long Run_length, long Buf_siz
  */
 Record*  RunIterator::next() {
   int bytes_per_record = schema->bytes_per_record() ;
-  fseek(fp, start_pos+cur_index*(bytes_per_record+1), SEEK_SET);
-  fgets (cur_record -> data , bytes_per_record + 1, fp);
-  char buffer[5];
-  fgets (buffer, 2 , fp);
+  if (cur_index % records_num == 0){
+    fseek(fp, start_pos+cur_index*(bytes_per_record+1), SEEK_SET);
+    fread((char*)record_buf, records_num*(bytes_per_record+1), 1, fp);
+  }
+  Record* record = new Record();
+  record->schema = schema;
+  memcpy(record->data, (char*) record_buf + (cur_index%records_num)*(bytes_per_record+1), bytes_per_record);
+  cur_record = record;
   cur_index++;
   return cur_record;
 }
@@ -135,6 +141,9 @@ void merge_runs(RunIterator* iterators[], int num_runs, FILE *out_fp,
                 long start_pos, char *buf, long buf_size)
 {
   // Your implementation
+  int cur_buf_count = 0;
+  int bytes_per_record = iterators[0]->schema->bytes_per_record();
+  int record_nums = buf_size/bytes_per_record;
   priority_queue <RunIterator*, vector<RunIterator*>, Compare> heap;
   
   for(int i = 0; i < num_runs; i++){
@@ -144,12 +153,23 @@ void merge_runs(RunIterator* iterators[], int num_runs, FILE *out_fp,
   while (!heap.empty()){
     RunIterator* it = heap.top();
     heap.pop();
-    fprintf(out_fp, it->cur_record->data);
-    fprintf(out_fp, "\n");
+    int write_index = cur_buf_count*(bytes_per_record+1);
+    memcpy((char*) buf + write_index, it->cur_record->data, bytes_per_record);
+    memcpy((char*) buf + write_index + bytes_per_record, "\n", 1);
+    cout << (char*) buf << endl;
+    cur_buf_count += 1;
+    if (cur_buf_count == record_nums){
+      cout << "full!" << endl;
+      fprintf(out_fp, (char*)buf);
+      cur_buf_count = 0;
+    }
     if (it->has_next()){
       it->next();
       heap.push(it);
     }
+  }
+  if (cur_buf_count != 0){
+    fprintf(out_fp, (char*)buf);
   }
 }
 
