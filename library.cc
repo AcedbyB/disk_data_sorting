@@ -66,6 +66,12 @@ int Schema::bytes_per_record()
 
 void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
 {
+  fseek(in_fp, 0, SEEK_END);
+  int sz = ftell(in_fp);
+  int num_rec = sz/(schema->bytes_per_record()+1);
+
+
+  fseek(in_fp, 0, SEEK_SET);
   int cur = 0;
   char buffer[5];
   Record* records[run_length];
@@ -78,17 +84,20 @@ void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
   while ( !feof (in_fp) ) {
     fgets (buffer, 1 , in_fp);
 
-    if ( fgets (records[cur] -> data , schema -> bytes_per_record() + 1, in_fp) == NULL ) break;
+    if ( fgets (records[cur%run_length] -> data , schema -> bytes_per_record() + 1, in_fp) == NULL ) break;
     fgets (buffer, 2 , in_fp); //skips end of line character
     cur++;
 
-    if(cur == run_length) {
-      qsort (records, run_length, sizeof(Record*), compare);
-      for(int i = 0; i < run_length; i++) {
+    if((cur % run_length == 0 && cur > 0) || (cur == num_rec)) {
+      int rl = run_length;
+      if (cur == num_rec){
+        rl = num_rec % run_length;
+      }      
+      qsort (records, rl, sizeof(Record*), compare);
+      for(int i = 0; i < rl; i++) {
         fprintf(out_fp, records[i] -> data);
         fprintf(out_fp, "\n");
       }
-      cur = 0;
     }
   }
   fclose (in_fp);
@@ -116,6 +125,7 @@ RunIterator::RunIterator(FILE *Fp, long Start_pos, long Run_length, long Buf_siz
  */
 Record*  RunIterator::next() {
   int bytes_per_record = schema->bytes_per_record() ;
+  // Read the records in blocks of records_num
   if (cur_index % records_num == 0){
     fseek(fp, start_pos+cur_index*(bytes_per_record+1), SEEK_SET);
     fread((char*)record_buf, records_num*(bytes_per_record+1), 1, fp);

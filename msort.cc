@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include <chrono>
 
 #include "library.h"
 #include "json/json.h"
@@ -67,6 +68,7 @@ int main(int argc, const char* argv[]) {
     else if(cur_att == "start_year") cur_schema -> sort_attrs[i] = 2;
     else cur_schema -> sort_attrs[i] = 3;
   }
+  auto start = chrono::steady_clock::now();
 
   // Do the sort
   FILE* in_fp = fopen (argv[2] , "r");
@@ -76,15 +78,22 @@ int main(int argc, const char* argv[]) {
   FILE *temp_file = fopen("temp", "w+");
   long mem_size = stol(argv[4]);
   int k = stoi(argv[5]);
+  //Find size of file
+  fseek(in_fp, 0, SEEK_END);
+  int sz = ftell(in_fp);
 
+  int bytes_per_record = cur_schema -> bytes_per_record();
+  cout << "FILE SIZE:" << sz << endl;
+  cout << bytes_per_record << endl;
+  int records = sz/(bytes_per_record+1);
+  int run_length = ceil((float) records/ (float) k);
+  cout << run_length << endl;
   long start_pos = 0;
-  long run_length = 5;
   mk_runs(in_fp, temp_file, run_length, cur_schema);
   fseek (temp_file , start_pos, SEEK_SET );
 
   RunIterator* iterators[k];
 
-  int bytes_per_record = cur_schema -> bytes_per_record();
   // Buffer size allocated to each iterator = total memory allowed/(k+1)
   int iterator_buf_size = mem_size/(k + 1);
   if (iterator_buf_size < bytes_per_record) {
@@ -93,7 +102,12 @@ int main(int argc, const char* argv[]) {
   }
   // One iterator for each sublist of k runs
   for(int i = 0; i < k; i++){
-    iterators[i] = new RunIterator(temp_file, i*run_length*(bytes_per_record+1), run_length, iterator_buf_size, cur_schema);
+    int rl = run_length;
+    if ((i+1)*run_length > records){
+      rl = records % run_length;
+    }
+    cout << "rl" << rl << endl;
+    iterators[i] = new RunIterator(temp_file, i*run_length*(bytes_per_record+1), rl, iterator_buf_size, cur_schema);
   }
   int cur_pages = k;
   int buf_size = iterator_buf_size;
@@ -101,4 +115,8 @@ int main(int argc, const char* argv[]) {
   char buf [buf_size];
   merge_runs(iterators, k, out_fp, 0, buf, buf_size);
   // remove("temp");
+  auto end = chrono::steady_clock::now();
+  cout << "TIME : "
+    << chrono::duration_cast<chrono::milliseconds>(end - start).count()
+    << "milliseconds" << endl;
 }
