@@ -49,10 +49,12 @@ public:
             str_A[length] = '\0';
             str_B[length] = '\0';
 
+            //cout<<str_A<<' '<<str_B<<endl;
             int cmp = strcmp(str_A, str_B);
-            if(cmp>0) return true;
+            if(cmp > 0) return true;
+            else if(cmp < 0) return false;
         }
-        return false;
+        return true;
     }
 };
 

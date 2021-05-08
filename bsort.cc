@@ -56,7 +56,7 @@ int main(int argc, const char* argv[]) {
 		}
 		
 	}
-
+	int bytes_per_record = cur_schema -> bytes_per_record();
 	
 	for(int i = 0; i < cur_schema -> n_sort_attrs; i++) {
 		string cur_att(argv[i + 4]);
@@ -80,7 +80,8 @@ int main(int argc, const char* argv[]) {
 	while ( !feof (in_fp) ) {
 		fgets (buffer, 1 , in_fp);
 
-		if ( fgets (buffer, cur_schema -> bytes_per_record() + 1, in_fp) == NULL ) break;
+		//int bytes_per_record = cur_schema -> bytes_per_record() + 1;
+		if ( fgets (buffer, bytes_per_record + 1, in_fp) == NULL ) break;
 		
 		unique_counter++;
 		int i = cur_schema -> sort_attrs[0];
