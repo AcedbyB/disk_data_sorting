@@ -78,43 +78,44 @@ int main(int argc, const char* argv[]) {
   FILE *temp_file = fopen("temp", "w+");
   long mem_size = stol(argv[4]);
   int k = stoi(argv[5]);
+  if (k == 1){
+    temp_file = out_fp;
+  }
   //Find size of file
   fseek(in_fp, 0, SEEK_END);
   int sz = ftell(in_fp);
 
   int bytes_per_record = cur_schema -> bytes_per_record();
   cout << "FILE SIZE:" << sz << endl;
-  cout << bytes_per_record << endl;
   int records = sz/(bytes_per_record+1);
   int run_length = ceil((float) records/ (float) k);
-  cout << run_length << endl;
   long start_pos = 0;
   mk_runs(in_fp, temp_file, run_length, cur_schema);
   fseek (temp_file , start_pos, SEEK_SET );
+  if (k!=1){
+    RunIterator* iterators[k];
 
-  RunIterator* iterators[k];
-
-  // Buffer size allocated to each iterator = total memory allowed/(k+1)
-  int iterator_buf_size = mem_size/(k + 1);
-  if (iterator_buf_size < bytes_per_record) {
-    cout << "ALLOCATED MEMORY CANNOT STORE " << k << " ITERATORS!" << endl;
-    exit(0);
-  }
-  // One iterator for each sublist of k runs
-  for(int i = 0; i < k; i++){
-    int rl = run_length;
-    if ((i+1)*run_length > records){
-      rl = records % run_length;
+    // Buffer size allocated to each iterator = total memory allowed/(k+1)
+    int iterator_buf_size = mem_size/(k + 1);
+    if (iterator_buf_size < bytes_per_record) {
+      cout << "ALLOCATED MEMORY CANNOT STORE " << k << " ITERATORS!" << endl;
+      exit(0);
     }
-    cout << "rl" << rl << endl;
-    iterators[i] = new RunIterator(temp_file, i*run_length*(bytes_per_record+1), rl, iterator_buf_size, cur_schema);
-  }
-  int cur_pages = k;
-  int buf_size = iterator_buf_size;
-  cout << iterator_buf_size << endl;
-  char buf [buf_size];
-  merge_runs(iterators, k, out_fp, 0, buf, buf_size);
+    // One iterator for each sublist of k runs
+    for(int i = 0; i < k; i++){
+      int rl = run_length;
+      if ((i+1)*run_length > records){
+        rl = records % run_length;
+      }
+      iterators[i] = new RunIterator(temp_file, i*run_length*(bytes_per_record+1), rl, iterator_buf_size, cur_schema);
+    }
+    int cur_pages = k;
+    int buf_size = iterator_buf_size;
+    cout << iterator_buf_size << endl;
+    char buf [buf_size];
+    merge_runs(iterators, k, out_fp, 0, buf, buf_size);
   // remove("temp");
+  }
   auto end = chrono::steady_clock::now();
   cout << "TIME : "
     << chrono::duration_cast<chrono::milliseconds>(end - start).count()

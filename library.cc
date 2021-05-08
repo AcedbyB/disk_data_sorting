@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>  
 #include<vector> 
+#include<math.h>
 #include<algorithm>
 #include<queue>
 
@@ -70,29 +71,44 @@ void mk_runs(FILE *in_fp, FILE *out_fp, long run_length, Schema *schema)
   int sz = ftell(in_fp);
   int num_rec = sz/(schema->bytes_per_record()+1);
 
-
   fseek(in_fp, 0, SEEK_SET);
   int cur = 0;
-  char buffer[5];
   Record* records[run_length];
   for(int i = 0; i < run_length; i++) {
     records[i] = new Record();
     records[i] -> schema = schema;
   }
-
-  int bytes_per_record = schema->bytes_per_record();
+  char buffer[5];
+  // int bytes_per_record = schema->bytes_per_record();
+  // void * buffer = malloc(run_length*bytes_per_record);
+  // for (int i = 0; i < k; i++){
+  //   int rl = run_length;
+  //   if ((i+1)*run_length > num_rec){
+  //     rl = num_rec % run_length;
+  //   }
+  //   fread(buffer, rl*(bytes_per_record+1), 1, in_fp);
+  //   for (int j = 0; j < rl; j++){
+  //     memcpy(records[j]->data, (char*) buffer + j*(bytes_per_record+1), bytes_per_record);
+  //   }
+  //   qsort(records, rl, sizeof(Record*), compare);
+    
+  //   for(int i = 0; i < rl; i++) {
+  //     fprintf(out_fp, records[i] -> data);
+  //     fprintf(out_fp, "\n");
+  //   }
+  // }
   while ( !feof (in_fp) ) {
+    int rl = run_length;
+    if (cur == num_rec){
+      rl = num_rec % run_length;
+    }   
     fgets (buffer, 1 , in_fp);
 
     if ( fgets (records[cur%run_length] -> data , schema -> bytes_per_record() + 1, in_fp) == NULL ) break;
     fgets (buffer, 2 , in_fp); //skips end of line character
     cur++;
 
-    if((cur % run_length == 0 && cur > 0) || (cur == num_rec)) {
-      int rl = run_length;
-      if (cur == num_rec){
-        rl = num_rec % run_length;
-      }      
+    if((cur % run_length == 0 && cur > 0) || (cur == num_rec)) {   
       qsort (records, rl, sizeof(Record*), compare);
       for(int i = 0; i < rl; i++) {
         fprintf(out_fp, records[i] -> data);
@@ -154,7 +170,7 @@ void merge_runs(RunIterator* iterators[], int num_runs, FILE *out_fp,
   fseek(out_fp, start_pos, SEEK_SET);
   int cur_buf_count = 0;
   int bytes_per_record = iterators[0]->schema->bytes_per_record();
-  int record_nums = buf_size/bytes_per_record;
+  int record_nums = ceil((float)buf_size/(float) bytes_per_record);
   priority_queue <RunIterator*, vector<RunIterator*>, Compare> heap;
   
   for(int i = 0; i < num_runs; i++){
