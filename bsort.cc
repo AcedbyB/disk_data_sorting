@@ -13,7 +13,7 @@ using namespace std;
 
 int main(int argc, const char* argv[]) {
 
-	if (argc != 5) {
+	if (argc < 5) {
 		cout << "ERROR: invalid input parameters!" << endl;
 		cout << "Please enter <schema_file> <input_file> <out_index> <sorting_attributes>" << endl;
 		exit(1);
@@ -77,6 +77,7 @@ int main(int argc, const char* argv[]) {
 
 	
 	char buffer[50];
+	char str[100];
 	char unique_key[10 + sizeof(long)]; 
 	long unique_counter = 0;
 
@@ -88,16 +89,19 @@ int main(int argc, const char* argv[]) {
 		if ( fgets (buffer, bytes_per_record + 1, in_fp) == NULL ) break;
 		
 		unique_counter++;
-		int i = cur_schema -> sort_attrs[0];
-		int length = cur_schema -> attrs[i] -> length;
-		int offset = cur_schema -> offset[i];
-		char str[length + sizeof(long) + 1];
-		memcpy(str, buffer + offset, length);
+		int length = 0;
+		
+		for(int j = 0; j < cur_schema -> nattrs; j++) {
+			int i = cur_schema -> sort_attrs[j];
+			int offset = cur_schema -> offset[i];
+			memcpy(str + length, buffer + offset, cur_schema -> attrs[i] -> length);
+			length += cur_schema -> attrs[i] -> length;
+		}
+
 		memcpy(str + length, &unique_counter, sizeof(long));
 		str[length + sizeof(long)] = '\0';
             
 		db->Put(leveldb::WriteOptions(), leveldb::Slice(str, sizeof(str)), buffer);
-		//cout<<unique_counter<<' '<<str<<' '<<buffer<<endl;
 		fgets (buffer, 2 , in_fp); //skips end of line character	
 	}
 
