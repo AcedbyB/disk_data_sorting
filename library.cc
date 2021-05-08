@@ -141,6 +141,7 @@ void merge_runs(RunIterator* iterators[], int num_runs, FILE *out_fp,
                 long start_pos, char *buf, long buf_size)
 {
   // Your implementation
+  fseek(out_fp, start_pos, SEEK_SET);
   int cur_buf_count = 0;
   int bytes_per_record = iterators[0]->schema->bytes_per_record();
   int record_nums = buf_size/bytes_per_record;
@@ -155,11 +156,9 @@ void merge_runs(RunIterator* iterators[], int num_runs, FILE *out_fp,
     heap.pop();
     int write_index = cur_buf_count*(bytes_per_record+1);
     memcpy((char*) buf + write_index, it->cur_record->data, bytes_per_record);
-    memcpy((char*) buf + write_index + bytes_per_record, "\n", 1);
-    cout << (char*) buf << endl;
+    memcpy((char*) buf + write_index + bytes_per_record, "\n", 2);
     cur_buf_count += 1;
     if (cur_buf_count == record_nums){
-      cout << "full!" << endl;
       fprintf(out_fp, (char*)buf);
       cur_buf_count = 0;
     }

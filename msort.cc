@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 #include "library.h"
 #include "json/json.h"
@@ -73,26 +74,31 @@ int main(int argc, const char* argv[]) {
 
   // temp file to store mk runs 
   FILE *temp_file = fopen("temp", "w+");
+  long mem_size = stol(argv[4]);
+  int k = stoi(argv[5]);
 
   long start_pos = 0;
   long run_length = 5;
-
-  
-  long buf_size = 1000;
   mk_runs(in_fp, temp_file, run_length, cur_schema);
   fseek (temp_file , start_pos, SEEK_SET );
 
-  int num_runs = 4;
-  RunIterator* iterators[num_runs];
+  RunIterator* iterators[k];
 
   int bytes_per_record = cur_schema -> bytes_per_record();
-// One iterator for each sublist
-  for(int i = 0; i < num_runs; i++){
-    iterators[i] = new RunIterator(temp_file, i*run_length*(bytes_per_record+1), run_length, buf_size, cur_schema);
+  // Buffer size allocated to each iterator = total memory allowed/(k+1)
+  int iterator_buf_size = mem_size/(k + 1);
+  if (iterator_buf_size < bytes_per_record) {
+    cout << "ALLOCATED MEMORY CANNOT STORE " << k << " ITERATORS!" << endl;
+    exit(0);
   }
-
-
-  char buf [1000];
-  merge_runs(iterators, num_runs, out_fp, 0, buf, 1000);
+  // One iterator for each sublist of k runs
+  for(int i = 0; i < k; i++){
+    iterators[i] = new RunIterator(temp_file, i*run_length*(bytes_per_record+1), run_length, iterator_buf_size, cur_schema);
+  }
+  int cur_pages = k;
+  int buf_size = iterator_buf_size;
+  cout << iterator_buf_size << endl;
+  char buf [buf_size];
+  merge_runs(iterators, k, out_fp, 0, buf, buf_size);
   // remove("temp");
 }
