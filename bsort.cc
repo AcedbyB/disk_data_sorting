@@ -2,10 +2,12 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <chrono>
 
 #include "library.h"
 #include "leveldb/db.h"
 #include "json/json.h"
+
 
 using namespace std;
 
@@ -77,6 +79,8 @@ int main(int argc, const char* argv[]) {
 	char buffer[50];
 	char unique_key[10 + sizeof(long)]; 
 	long unique_counter = 0;
+
+	auto start = chrono::steady_clock::now();
 	while ( !feof (in_fp) ) {
 		fgets (buffer, 1 , in_fp);
 
@@ -110,6 +114,13 @@ int main(int argc, const char* argv[]) {
         fprintf(out_fp, "\n");
 	}
 	assert(it->status().ok());  // Check for any errors found during the scan
+
+	auto end = chrono::steady_clock::now();
+	auto nanosec = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    double duration = nanosec*1.0/(1e6 * 1.0);
+    cout << "TIME : "
+        << duration
+        << "milliseconds" << endl;
 	
 	// delete db;
 	for (it->SeekToFirst(); it->Valid(); it->Next()) {

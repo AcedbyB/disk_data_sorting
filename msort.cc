@@ -117,7 +117,9 @@ int main(int argc, const char* argv[]) {
   // remove("temp");
   }
   auto end = chrono::steady_clock::now();
+	auto nanosec = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+  double duration = nanosec*1.0/(1e6 * 1.0);
   cout << "TIME : "
-    << chrono::duration_cast<chrono::milliseconds>(end - start).count()
-    << "milliseconds" << endl;
+      << duration
+      << "milliseconds" << endl;
 }
